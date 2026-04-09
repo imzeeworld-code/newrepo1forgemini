@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WOD Drop - Portable Version</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="bg-[#0A0A0B] text-white">
+    <div id="root"></div>
+
+    <script>
+        const { useState, useRef } = React;
+
+        function App() {
+            const [htmlContent, setHtmlContent] = useState("");
+            const [isUploading, setIsUploading] = useState(false);
+            const [liveUrl, setLiveUrl] = useState(null);
+            const [error, setError] = useState(null);
+
+            const handleDeploy = async () => {
+                if (!htmlContent.trim()) return;
+                setIsUploading(true);
+                setError(null);
+                try {
+                    const response = await fetch("/api/upload-html", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ html: htmlContent }),
+                    });
+                    const data = await response.json();
+                    if (data.url) {
+                        setLiveUrl(data.url);
+                    } else {
+                        setError(data.error || "Failed to upload");
+                    }
+                } catch (err) {
+                    setError("Network error. Please try again.");
+                } finally {
+                    setIsUploading(false);
+                }
+            };
+
+            return React.createElement('div', { className: 'min-h-screen p-8 max-w-4xl mx-auto' },
+                React.createElement('div', { className: 'text-center mb-12' },
+                    React.createElement('h1', { className: 'text-4xl font-extrabold mb-4' }, 'WOD Drop Portable'),
+                    React.createElement('p', { className: 'text-gray-400' }, 'Paste your HTML below to deploy instantly.')
+                ),
+                React.createElement('div', { className: 'bg-white/5 p-6 rounded-3xl border border-white/10' },
+                    React.createElement('textarea', {
+                        value: htmlContent,
+                        onChange: (e) => setHtmlContent(e.target.value),
+                        placeholder: '<!DOCTYPE html>...',
+                        className: 'w-full h-64 bg-black/40 border border-white/10 rounded-2xl p-4 font-mono text-sm mb-6 focus:outline-none focus:border-orange-500'
+                    }),
+                    React.createElement('button', {
+                        onClick: handleDeploy,
+                        disabled: isUploading || !htmlContent.trim(),
+                        className: 'w-full bg-orange-600 py-3 rounded-xl font-bold hover:bg-orange-500 transition-colors disabled:opacity-50'
+                    }, isUploading ? 'Deploying...' : 'Deploy Now')
+                ),
+                liveUrl && React.createElement('div', { className: 'mt-8 p-6 bg-orange-500/10 border border-orange-500/20 rounded-3xl text-center' },
+                    React.createElement('h3', { className: 'text-xl font-bold mb-2' }, 'Site Live!'),
+                    React.createElement('a', { 
+                        href: liveUrl, 
+                        target: '_blank', 
+                        className: 'text-orange-400 underline break-all' 
+                    }, window.location.origin + liveUrl)
+                ),
+                error && React.createElement('div', { className: 'mt-8 p-4 bg-red-500/10 border border-red-500/20 rounded-2xl text-red-400 text-center' }, error)
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(React.createElement(App));
+    </script>
+</body>
+</html>

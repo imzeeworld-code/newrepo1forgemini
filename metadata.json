@@ -1,0 +1,5 @@
+{
+  "name": "WOD Drop free static hosting",
+  "description": "A simple and fast static site hosting service. Drop your index.html or ZIP file and get a live URL instantly.",
+  "requestFramePermissions": []
+}
